@@ -1,2 +1,183 @@
-# data_challenge_Klaviyo
-Klaviyo's pre screening assessment for Data Scientist
+---
+title: "Klaviyo_Assessment"
+author: "Aadish Chopra"
+date: "August 29, 2018"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Name:Aadish Chopra Email:aadishchopra16@gmail.com
+
+
+```{r pressure, echo=FALSE,out.width = '50%'}
+knitr::include_graphics("klaviyo_logo.png")
+```
+
+Loading all the libraries and the dataset at the beginning of the script
+Making all the messages and warning silent so that the documentation is more succint 
+
+```{r warning=FALSE,message=FALSE}
+library(readr)
+library("dplyr")
+library("lubridate")
+library("knitr")
+orders_table <- read_csv("data_science_screening_exercise_orders.csv")
+
+
+
+
+```
+
+
+#Exercise Questions
+
+The attached CSV file lists the customer, date, and dollar value of orders placed at a store in 2017. The gender of each customer is also provided.
+
+Complete each of the following activities in a jupyter notebook or similar. Include your name and email at the top. Send back your notebook file.
+
+A) Assemble a dataframe with one row per customer and the following columns:
+    * customer_id
+    * gender
+    * most_recent_order_date
+    * order_count (number of orders placed by this customer)
+
+B) Plot the count of orders per week.
+
+C) Compute the mean order value for gender 0 and for gender 1. Do you think the difference is significant?
+
+_____________________________________________________________________________________________________________
+
+My solution
+
+Let us view the dataset and get idea about the columns and the nature of values it has
+
+```{r results="asis"}
+
+
+kable(head(orders_table),caption = "Orders_Table")
+names(orders_table)
+
+
+
+```
+
+We created a helping dataset which we will use later. This dataset shows the number of orders placed by a customer
+
+```{r echo=TRUE,eval=FALSE}
+
+str(orders_table)
+
+
+```
+
+
+
+```{r}
+cust_order_count<-orders_table %>% group_by(customer_id,gender) %>% summarise(order_count=n())
+
+```
+
+To find the most recent order we can use arrange the table in descending order and then take the maximum value for each individual customer. Date format is in a standard posix so there won't be any difficulty in playing around with the dates
+
+#Solving Part A)
+
+```{r results='asis'}
+
+cust_date<-orders_table %>% group_by(customer_id) %>% mutate(order_count=n()) %>% slice(which.max(date)) %>% select(customer_id,gender,most_recent_order_date=date,order_count)
+kable(head(cust_date),caption = "Customer_Orders_Table")
+
+
+
+
+```
+
+Running the above code would solve Part A)
+
+#Solving Part B)
+
+**Assumption: Assuming weeks by their natural order i.e year starts from January 1 and ends at Dec 31**
+
+Not taking fiscal year, quarters or some other business logic
+For calculation of part B lubridate would be quite useful 
+
+what_week_of_year shows in what week of the year the order was made. The count of orders would simply be a frequency analysis of what_week_of_year
+
+
+```{r results="asis"}
+
+orders_week<-orders_table %>% mutate(what_week_of_year=week(date))
+kable(head(orders_week),caption = "Orders_Week")
+
+
+num_of_orders_weekwise<-orders_week %>% group_by(what_week_of_year) %>% summarise(number_of_orders=n())
+
+kable(head(num_of_orders_weekwise),caption = "Count of order per week")
+
+
+
+```
+
+The above table gives us a tidier version and is more natural and intuitive to see and infer. We can use plot function because there are simply two variables and nothing fancy is to be shown.
+
+```{r}
+plot(orders_week %>% group_by(what_week_of_year) %>% summarise(number_of_orders=n()),type="b",pch=19,cex=1)
+
+```
+
+```{r}
+
+kable(num_of_orders_weekwise[which.max(num_of_orders_weekwise$number_of_orders),],caption = "Max order in week")
+
+
+```
+
+Although not desired but the maximum orders were placed in the week is 20th week starting from Jan 1 as stated in the assumption above
+
+
+# Answer to Part C)
+
+```{r}
+
+mean_order<-orders_table %>% group_by(gender) %>% summarise(mean_order_value=mean(value))
+mean_order
+
+
+
+
+```
+
+To test for significant difference we need to perform a t-test. Performing a two sided t-test
+
+```{r}
+gender_0<-orders_table %>% filter(gender==0)
+gender_1<-orders_table %>% filter(gender==1)
+
+t.test(x = gender_0$value,y=gender_1$value,alternative = "two.sided")
+
+```
+
+
+Although the p-valye is less than 5% threshold and the result may be considered significant, but the confidence interval is too broad. Hence, it is not significantly different 
+
+
+<span style="color:blue">Thank you for the data challenge</span>
+
+
+<span style="color:red">Please note that answers have been striclty restricted to questions asked</span>
+
+
+
+
+
+
+
+
+
+
+
