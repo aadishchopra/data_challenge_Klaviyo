@@ -1,0 +1,12 @@
+Image/Logo for Klaviyo. Just put the image in the directory which is the same as your working folder. 
+
+R code
+
+>getwd()
+>setwd()
+
+
+Use the getwd() command to see your working directory
+Use the setwd() command to change your working directory
+
+() In the paranthesis write the directory path. For eg it can be C:/Users/Microsoft/Desktop/Blah/Blah.R 
